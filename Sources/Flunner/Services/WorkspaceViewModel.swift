@@ -8,6 +8,10 @@ final class WorkspaceViewModel: ObservableObject {
 
     @Published private(set) var projectPath: String?
     @Published private(set) var projectName = "No Project"
+    /// Toolchain of the open project: Flutter, or DartNative (driven through `dn`).
+    @Published private(set) var projectToolchain: ProjectToolchain = .flutter
+    /// Detected toolchain per recent project, for sidebar badges.
+    @Published private(set) var projectToolchains: [String: ProjectToolchain] = [:]
     @Published private(set) var devices: [Device] = []
     @Published private(set) var emulators: [Device] = []
     @Published private(set) var launchConfigs: [LaunchConfig] = []
@@ -53,6 +57,7 @@ final class WorkspaceViewModel: ObservableObject {
     private var daemonCancellables = Set<AnyCancellable>()
     private var logsByBuffer: [LogBufferKey: [LogEntry]] = [:]
     private var rolledOverLogKeys: Set<LogBufferKey> = []
+    private var hasStartedSDKInfo = false
 
     private static let unscopedLogKey = "__flugger_unscoped__"
     private static let unscopedDeviceKey = "__flugger_unscoped_device__"
@@ -111,6 +116,8 @@ final class WorkspaceViewModel: ObservableObject {
             status = "Ready"
         }
 
+        sdkInfoService.prepare(for: projectToolchain)
+        hasStartedSDKInfo = true
         Task { await sdkInfoService.refresh() }
     }
 
@@ -172,7 +179,17 @@ final class WorkspaceViewModel: ObservableObject {
         projectPath != nil
     }
     var isDevToolsAvailable: Bool { debugVmServiceUri != nil }
-    var isWidgetPreviewerAvailable: Bool { projectPath != nil }
+    var isWidgetPreviewerAvailable: Bool { projectPath != nil && projectToolchain.supportsWidgetPreviewer }
+    var cliCommandGroups: [FlutterCLICommandGroup] { FlutterCLICommand.groups(for: projectToolchain) }
+    var navigationSubtitle: String {
+        guard let projectPath else { return "" }
+        let path = projectPath.abbreviatingWithTildeInPath
+        return projectToolchain == .dartNative ? "\(projectToolchain.displayName) · \(path)" : path
+    }
+
+    func toolchain(forProjectAt path: String) -> ProjectToolchain? {
+        projectToolchains[path]
+    }
 
     func liveRun(forDeviceId deviceId: String) -> LiveRun? {
         guard let projectPath else { return nil }
@@ -242,7 +259,7 @@ final class WorkspaceViewModel: ObservableObject {
     }
 
     var runBlockReason: String? {
-        if projectPath == nil { return "Choose a Flutter project first." }
+        if projectPath == nil { return "Choose a Flutter or DartNative project first." }
         if isProjectMaintenanceRunning { return "Project maintenance is in progress." }
         if selectedDeviceId == nil { return "Choose a connected device first." }
         if liveRunForSelectedDevice != nil { return "This device already has a running session." }
@@ -250,13 +267,13 @@ final class WorkspaceViewModel: ObservableObject {
     }
 
     var pubGetBlockReason: String? {
-        if projectPath == nil { return "Choose a Flutter project first." }
+        if projectPath == nil { return "Choose a Flutter or DartNative project first." }
         if isProjectMaintenanceRunning { return "Project maintenance is already in progress." }
         return nil
     }
 
     var cleanAndPubGetBlockReason: String? {
-        if projectPath == nil { return "Choose a Flutter project first." }
+        if projectPath == nil { return "Choose a Flutter or DartNative project first." }
         if isAppRunning { return "Stop all running sessions before cleaning." }
         if isProjectMaintenanceRunning { return "Project maintenance is already in progress." }
         return nil
@@ -281,7 +298,7 @@ final class WorkspaceViewModel: ObservableObject {
         panel.canChooseDirectories = true
         panel.allowsMultipleSelection = false
         panel.prompt = "Open Project"
-        panel.message = "Choose a Flutter project folder"
+        panel.message = "Choose a Flutter or DartNative project folder"
 
         panel.begin { [weak self] response in
             guard response == .OK, let url = panel.url else { return }
@@ -305,8 +322,9 @@ final class WorkspaceViewModel: ObservableObject {
             .standardizedFileURL
             .resolvingSymlinksInPath()
             .path
+        let toolchain: ProjectToolchain
         do {
-            try Self.validateProject(at: path)
+            toolchain = try Self.validateProject(at: path)
         } catch let error as WorkspaceValidationError {
             lastValidationError = error
             throw error
@@ -320,7 +338,13 @@ final class WorkspaceViewModel: ObservableObject {
 
         projectPath = path
         projectName = name
+        projectToolchain = toolchain
+        projectToolchains[path] = toolchain
         launchConfigs = configs
+        if hasStartedSDKInfo, sdkInfoService.toolchain != toolchain {
+            sdkInfoService.prepare(for: toolchain)
+            Task { await sdkInfoService.refresh() }
+        }
 
         let preferredConfig = existing?.lastConfigurationName ?? UserDefaultsStore.shared.lastLaunchConfigName
         selectedLaunchConfigName = preferredConfig.flatMap { preferred in
@@ -358,7 +382,8 @@ final class WorkspaceViewModel: ObservableObject {
             deviceId: activeDeviceLogKey
         )
         if logsByBuffer[consoleKey]?.isEmpty ?? true {
-            addLog("Project: \(name)", type: .command, projectPath: path)
+            let kind = toolchain == .dartNative ? " (DartNative, using dn)" : ""
+            addLog("Project: \(name)\(kind)", type: .command, projectPath: path)
         }
 
         refreshEmulators()
@@ -439,6 +464,7 @@ final class WorkspaceViewModel: ObservableObject {
         selectedLiveRunID = runID
 
         let newRunner = runnerFactory(projectPath, deviceId)
+        newRunner.toolchain = projectToolchain
         newRunner.onLogOutput = { [weak self] message, type in
             self?.addLog(message, type: type, projectPath: projectPath, deviceId: deviceId)
         }
@@ -639,18 +665,23 @@ final class WorkspaceViewModel: ObservableObject {
 
     func runFlutterCommand(_ command: FlutterCLICommand) {
         guard let projectPath else { return }
-        terminalWorkspaces.sendToActiveSession(command, in: projectPath)
+        terminalWorkspaces.sendToActiveSession(
+            command,
+            in: projectPath,
+            executable: projectToolchain.executable
+        )
     }
 
     func openLink(_ url: URL) {
         NSWorkspace.shared.open(url)
     }
 
+    /// Opens Device Hub on Xcode 27+ (which replaced Simulator.app), or
+    /// Simulator.app on older Xcode versions.
     func openiOSSimulator() {
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/open")
-        process.arguments = ["-a", "Simulator"]
-        try? process.run()
+        IOSSimulatorLauncher.open { [weak self] message, type in
+            self?.addLog(message, type: type)
+        }
     }
 
     func restartDaemon() { daemon.restart() }
@@ -669,7 +700,9 @@ final class WorkspaceViewModel: ObservableObject {
         daemon.restart()
     }
 
-    static func validateProject(at path: String, fileManager: FileManager = .default) throws {
+    /// Validates a project folder and returns its toolchain (Flutter or DartNative).
+    @discardableResult
+    static func validateProject(at path: String, fileManager: FileManager = .default) throws -> ProjectToolchain {
         var isDirectory: ObjCBool = false
         guard fileManager.fileExists(atPath: path, isDirectory: &isDirectory), isDirectory.boolValue else {
             throw WorkspaceValidationError.missingDirectory
@@ -682,9 +715,16 @@ final class WorkspaceViewModel: ObservableObject {
         guard let contents = try? String(contentsOfFile: pubspecPath, encoding: .utf8) else {
             throw WorkspaceValidationError.unreadableProject
         }
-        guard contents.range(of: #"(?m)^\s*flutter\s*:"#, options: .regularExpression) != nil else {
+        let hasDartNativeMarker = ProjectToolchain.dartNativeMarkerFiles.contains {
+            fileManager.fileExists(atPath: URL(fileURLWithPath: path).appendingPathComponent($0).path)
+        }
+        guard let toolchain = ProjectToolchain.detect(
+            pubspec: contents,
+            hasDartNativeMarkerFile: hasDartNativeMarker
+        ) else {
             throw WorkspaceValidationError.notFlutterProject
         }
+        return toolchain
     }
 
     private func bindDaemon() {
@@ -742,6 +782,11 @@ final class WorkspaceViewModel: ObservableObject {
     private func preloadIcons(for projects: [RecentProject]) {
         for project in projects where projectIcons[project.path] == nil {
             projectIcons[project.path] = FlutterAppIconService.extractIcon(from: project.path)
+        }
+        for project in projects where projectToolchains[project.path] == nil {
+            if let toolchain = ProjectToolchain.detect(at: project.path) {
+                projectToolchains[project.path] = toolchain
+            }
         }
     }
 

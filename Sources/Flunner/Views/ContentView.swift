@@ -37,7 +37,7 @@ struct ContentView: View {
                 isSourceControlSheetPresented: $isSourceControlSheetPresented
             )
             .navigationTitle(viewModel.projectName)
-            .navigationSubtitle(viewModel.projectPath?.abbreviatingWithTildeInPath ?? "")
+            .navigationSubtitle(viewModel.navigationSubtitle)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(WorkbenchColor.background)
         }

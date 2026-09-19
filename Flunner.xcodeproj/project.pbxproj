@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		E8EA987EA4DA1AD7EEA19D8C /* IOSSimulatorLauncherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8392CB99A5D9091AFB206FBD /* IOSSimulatorLauncherTests.swift */; };
+		CE082FB6E3D7D3673AA8D3B9 /* ProjectToolchainTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4DA3ACCD61024E35F616CE3 /* ProjectToolchainTests.swift */; };
+		A559D60CEE335E4A22EA4F97 /* IOSSimulatorLauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7451A105C0225C846F2CD918 /* IOSSimulatorLauncher.swift */; };
+		BCEC483DFE7CC4D23667A9D8 /* ProjectToolchain.swift in Sources */ = {isa = PBXBuildFile; fileRef = C283FC494F9DBCF5DCB33159 /* ProjectToolchain.swift */; };
 		0EFC1F2408FCB8367AFFFAAC /* TerminalWorkspaceManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2B8A8DB42B764CE9E6A8473 /* TerminalWorkspaceManagerTests.swift */; };
 		2A392863F5F7BE8A96DA09C9 /* KeyboardShortcutStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F26B1ADC6749DD8D9C1B825D /* KeyboardShortcutStoreTests.swift */; };
 		2EDBFA4FBD5E8A463A5060CD /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D54C6B3F20F8D9F456899A8 /* AppState.swift */; };
@@ -80,6 +84,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		8392CB99A5D9091AFB206FBD /* IOSSimulatorLauncherTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOSSimulatorLauncherTests.swift; sourceTree = "<group>"; };
+		E4DA3ACCD61024E35F616CE3 /* ProjectToolchainTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectToolchainTests.swift; sourceTree = "<group>"; };
+		7451A105C0225C846F2CD918 /* IOSSimulatorLauncher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOSSimulatorLauncher.swift; sourceTree = "<group>"; };
+		C283FC494F9DBCF5DCB33159 /* ProjectToolchain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectToolchain.swift; sourceTree = "<group>"; };
 		06EF6C4892EF5DF6A9EC0114 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		0DF672686DB5283F0BB47D36 /* FlunnerMCPModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlunnerMCPModels.swift; sourceTree = "<group>"; };
 		10B7CC54E8CB2D0CA7BDE8D8 /* LaunchConfigEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchConfigEditorView.swift; sourceTree = "<group>"; };
@@ -169,6 +177,8 @@
 		163368076EA29A1793FDB790 /* FlunnerTests */ = {
 			isa = PBXGroup;
 			children = (
+				8392CB99A5D9091AFB206FBD /* IOSSimulatorLauncherTests.swift */,
+				E4DA3ACCD61024E35F616CE3 /* ProjectToolchainTests.swift */,
 				BD49A456069BF558A32A73E0 /* AgentMCPConfigWriterTests.swift */,
 				37A91CFDE4442149736D2ADB /* ConsoleLogToolsTests.swift */,
 				8205016E09AD86BD26CB69E6 /* FlunnerMCPTests.swift */,
@@ -223,6 +233,7 @@
 		405813ABBE2E039DE83AF9D0 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				7451A105C0225C846F2CD918 /* IOSSimulatorLauncher.swift */,
 				40C6FCAC62FF4C65A58410B6 /* FlutterAppIconService.swift */,
 				C231A1CB01459A0CD8218A83 /* FlutterDaemon.swift */,
 				272CBDD494D6CB4A76AC9F84 /* FlutterProjectMaintenanceService.swift */,
@@ -309,6 +320,7 @@
 		F6603E7CFE5713A3FF72E655 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				C283FC494F9DBCF5DCB33159 /* ProjectToolchain.swift */,
 				3D54C6B3F20F8D9F456899A8 /* AppState.swift */,
 				1C6D03086D9476BAEF8B09DF /* DaemonMessage.swift */,
 				954BC04D2C6A06038C55D3A3 /* Device.swift */,
@@ -419,6 +431,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E8EA987EA4DA1AD7EEA19D8C /* IOSSimulatorLauncherTests.swift in Sources */,
+				CE082FB6E3D7D3673AA8D3B9 /* ProjectToolchainTests.swift in Sources */,
 				E1FE6687328F4C5940A17710 /* AgentMCPConfigWriterTests.swift in Sources */,
 				E384DD9237FCFF206626C1F9 /* ConsoleLogToolsTests.swift in Sources */,
 				F3131DFC5961257F160F28C6 /* FlunnerMCPTests.swift in Sources */,
@@ -439,6 +453,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A559D60CEE335E4A22EA4F97 /* IOSSimulatorLauncher.swift in Sources */,
+				BCEC483DFE7CC4D23667A9D8 /* ProjectToolchain.swift in Sources */,
 				5BFFEA47A19A53F645423D75 /* AboutView.swift in Sources */,
 				8F61173BF6E22F64E4B68E0B /* AgentMCPConfigWriter.swift in Sources */,
 				2EDBFA4FBD5E8A463A5060CD /* AppState.swift in Sources */,

@@ -114,7 +114,9 @@ final class FlunnerMCPToolHost: @unchecked Sendable {
                 .init(name: $0.name, displayName: $0.displayName, flutterMode: $0.flutterMode)
             },
             liveRuns: viewModel.liveRuns.map(runPayload),
-            sdk: sdk
+            sdk: sdk,
+            projectToolchain: viewModel.projectPath == nil ? nil : viewModel.projectToolchain.rawValue,
+            cliExecutable: viewModel.projectPath == nil ? nil : viewModel.projectToolchain.executable
         )
         return .ok(payload)
     }
@@ -127,6 +129,7 @@ final class FlunnerMCPToolHost: @unchecked Sendable {
                 "displayName": $0.displayName,
                 "lastDeviceId": $0.lastDeviceId ?? "",
                 "lastConfigurationName": $0.lastConfigurationName ?? "",
+                "toolchain": viewModel.toolchain(forProjectAt: $0.path)?.rawValue ?? "",
             ]
         })
     }
@@ -231,7 +234,7 @@ final class FlunnerMCPToolHost: @unchecked Sendable {
     @MainActor
     private func openiOSSimulator() -> FlunnerMCPToolResult {
         viewModel.openiOSSimulator()
-        return .ok("Opening the iOS Simulator.")
+        return .ok("Opening the iOS Simulator (Device Hub on Xcode 27 and later).")
     }
 
     @MainActor
@@ -356,6 +359,7 @@ final class FlunnerMCPToolHost: @unchecked Sendable {
             return .ok("SDK info is still loading.")
         }
         return .ok([
+            "toolchain": viewModel.sdkInfoService.toolchain.rawValue,
             "flutterPath": info.flutterPath,
             "flutterVersion": info.flutterVersion,
             "channel": info.channel,
@@ -384,7 +388,9 @@ final class FlunnerMCPToolHost: @unchecked Sendable {
     @MainActor
     private func openWidgetPreviewer() -> FlunnerMCPToolResult {
         guard viewModel.isWidgetPreviewerAvailable else {
-            return .error("Open a Flutter project first.")
+            return .error(viewModel.projectPath == nil
+                ? "Open a Flutter project first."
+                : "The widget previewer is only available for Flutter projects.")
         }
         viewModel.openWidgetPreviewer()
         return .ok("Opened the widget previewer.")
@@ -393,11 +399,11 @@ final class FlunnerMCPToolHost: @unchecked Sendable {
     @MainActor
     private func runFlutterCommand(_ arguments: FlunnerMCPArguments) throws -> FlunnerMCPToolResult {
         let name = try arguments.requireString("name")
-        let commands = FlutterCLICommand.groups.flatMap(\.commands)
+        let commands = viewModel.cliCommandGroups.flatMap(\.commands)
         guard let command = commands.first(where: {
             $0.name.caseInsensitiveCompare(name) == .orderedSame
         }) else {
-            return .error("Unknown Flutter command: \(name).")
+            return .error("Unknown \(viewModel.projectToolchain.displayName) command: \(name).")
         }
         viewModel.runFlutterCommand(command)
         return .ok(["sent": command.name])
@@ -633,8 +639,8 @@ final class FlunnerMCPToolHost: @unchecked Sendable {
 enum FlunnerMCPToolCatalog {
     static let tools: [Tool] = [
         FlunnerMCPSchema.tool("get_status", description: "Snapshot of the live Flunner workbench: project, devices, sessions, and capability flags.", readOnly: true),
-        FlunnerMCPSchema.tool("list_projects", description: "List recent Flutter projects.", readOnly: true),
-        FlunnerMCPSchema.tool("open_project", description: "Open a Flutter project by filesystem path.", properties: ["path": FlunnerMCPSchema.string("Absolute project path")], required: ["path"]),
+        FlunnerMCPSchema.tool("list_projects", description: "List recent Flutter and DartNative projects, with each project's toolchain.", readOnly: true),
+        FlunnerMCPSchema.tool("open_project", description: "Open a Flutter or DartNative project by filesystem path. DartNative projects run with the dn CLI.", properties: ["path": FlunnerMCPSchema.string("Absolute project path")], required: ["path"]),
         FlunnerMCPSchema.tool("select_project", description: "Switch the workbench to an already-known project path.", properties: ["path": FlunnerMCPSchema.string("Project path")], required: ["path"]),
         FlunnerMCPSchema.tool("remove_recent_project", description: "Remove a project from recents. Blocked while that project has a live session.", properties: ["path": FlunnerMCPSchema.string("Project path")], required: ["path"], destructive: true),
         FlunnerMCPSchema.tool("list_devices", description: "List connected Flutter devices.", readOnly: true),
@@ -645,7 +651,7 @@ enum FlunnerMCPToolCatalog {
         FlunnerMCPSchema.tool("launch_emulator", description: "Launch an emulator by id, emulatorId, or name.", properties: ["id": FlunnerMCPSchema.string("Emulator id")], required: ["id"]),
         FlunnerMCPSchema.tool("kill_emulator", description: "Kill a running emulator.", properties: ["id": FlunnerMCPSchema.string("Emulator id")], required: ["id"], destructive: true),
         FlunnerMCPSchema.tool("kill_all_emulators", description: "Kill all running simulators and emulators.", destructive: true),
-        FlunnerMCPSchema.tool("open_ios_simulator", description: "Open the iOS Simulator app."),
+        FlunnerMCPSchema.tool("open_ios_simulator", description: "Open the iOS Simulator UI (Device Hub on Xcode 27+, Simulator.app on older Xcode)."),
         FlunnerMCPSchema.tool("list_sessions", description: "List live run sessions.", readOnly: true),
         FlunnerMCPSchema.tool("select_session", description: "Jump to a live session, restoring its project, device, and launch config.", properties: ["id": FlunnerMCPSchema.string("Session UUID")], required: ["id"]),
         FlunnerMCPSchema.tool("run", description: "Run the current project on the selected device."),
@@ -670,7 +676,7 @@ enum FlunnerMCPToolCatalog {
         FlunnerMCPSchema.tool("get_sdk_info", description: "Return Flutter SDK path and version info.", readOnly: true),
         FlunnerMCPSchema.tool("open_devtools", description: "Open Flutter DevTools, optionally on a page.", properties: ["page": FlunnerMCPSchema.string("inspector, performance, cpuProfiler, memory, network, appSize, deepLinks")]),
         FlunnerMCPSchema.tool("open_widget_previewer", description: "Open the Flutter widget previewer."),
-        FlunnerMCPSchema.tool("run_flutter_command", description: "Send a named Flutter CLI command to the integrated terminal.", properties: ["name": FlunnerMCPSchema.string("Command display name, e.g. Analyze or Build APK")], required: ["name"]),
+        FlunnerMCPSchema.tool("run_flutter_command", description: "Send a named CLI command to the integrated terminal, using flutter or dn to match the open project.", properties: ["name": FlunnerMCPSchema.string("Command display name, e.g. Analyze or Build APK")], required: ["name"]),
         FlunnerMCPSchema.tool("restart_daemon", description: "Restart the Flutter daemon."),
         FlunnerMCPSchema.tool("get_terminal", description: "Inspect the integrated terminal for the current project.", readOnly: true),
         FlunnerMCPSchema.tool("toggle_terminal", description: "Show or hide the integrated terminal."),

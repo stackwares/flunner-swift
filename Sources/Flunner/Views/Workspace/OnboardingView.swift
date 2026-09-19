@@ -31,7 +31,7 @@ struct OnboardingView: View {
         .background(WorkbenchColor.background)
         .tint(WorkbenchColor.accent)
         .alert(
-            "Not a Flutter Project",
+            "Not a Flutter or DartNative Project",
             isPresented: $isValidationErrorPresented,
             presenting: viewModel.lastValidationError
         ) { error in
@@ -138,7 +138,7 @@ struct OnboardingView: View {
                     .controlSize(.regular)
                     .keyboardShortcut(.defaultAction)
                     .tint(WorkbenchColor.accent)
-                    .accessibilityHint("Open a file picker to choose a Flutter project folder")
+                    .accessibilityHint("Open a file picker to choose a Flutter or DartNative project folder")
                 }
             }
             .frame(height: 62)
@@ -222,10 +222,10 @@ struct OnboardingView: View {
         OnboardingPage(
             symbol: "folder.badge.plus",
             stepLabel: "READY TO BUILD",
-            headline: "Open a Flutter Project",
-            bodyText: "Choose any Flutter project folder to begin. Flunner validates your environment, detects FVM configurations, and restores your workspace automatically.",
+            headline: "Open a Flutter or DartNative Project",
+            bodyText: "Choose any Flutter or DartNative project folder to begin. Flunner detects which toolchain the project uses (flutter or dn), validates your environment, detects FVM configurations, and restores your workspace automatically.",
             highlights: [
-                "Validates Flutter project & FVM setup",
+                "Validates Flutter & DartNative projects and FVM setup",
                 "Restores workspace state automatically",
             ]
         )

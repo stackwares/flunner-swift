@@ -27,6 +27,7 @@ struct WorkbenchSidebar: View {
                         SidebarProjectRow(
                             project: project,
                             icon: viewModel.projectIcons[project.path],
+                            toolchain: viewModel.toolchain(forProjectAt: project.path),
                             isCurrent: project.path == viewModel.projectPath,
                             runState: viewModel.runState(for: project.path)
                         )
@@ -130,6 +131,7 @@ private struct SidebarSelectionBackground: View {
 private struct SidebarProjectRow: View {
     let project: RecentProject
     let icon: NSImage?
+    let toolchain: ProjectToolchain?
     let isCurrent: Bool
     let runState: AppState
 
@@ -148,10 +150,15 @@ private struct SidebarProjectRow: View {
             .frame(width: 18, height: 18)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(project.displayName)
-                    .workbenchFont(.body, weight: isCurrent ? .semibold : .regular)
-                    .foregroundStyle(WorkbenchColor.textPrimary)
-                    .lineLimit(1)
+                HStack(spacing: WorkbenchSpacing.xs) {
+                    Text(project.displayName)
+                        .workbenchFont(.body, weight: isCurrent ? .semibold : .regular)
+                        .foregroundStyle(WorkbenchColor.textPrimary)
+                        .lineLimit(1)
+                    if toolchain == .dartNative {
+                        ToolchainBadge(toolchain: .dartNative)
+                    }
+                }
                 Text(project.path.abbreviatingWithTildeInPath)
                     .workbenchFont(.caption)
                     .foregroundStyle(WorkbenchColor.textSecondary)
@@ -164,6 +171,23 @@ private struct SidebarProjectRow: View {
         }
         .padding(.vertical, WorkbenchSpacing.xs)
         .accessibilityElement(children: .combine)
+    }
+}
+
+/// Small capsule marking a project's toolchain, e.g. "DN" for DartNative.
+struct ToolchainBadge: View {
+    let toolchain: ProjectToolchain
+
+    var body: some View {
+        Text(toolchain.shortLabel)
+            .font(.system(size: 9, weight: .semibold, design: .rounded))
+            .foregroundStyle(WorkbenchColor.accent)
+            .padding(.horizontal, 5)
+            .padding(.vertical, 1)
+            .background(Capsule().fill(WorkbenchColor.accentSoft))
+            .fixedSize()
+            .help("\(toolchain.displayName) project: runs with `\(toolchain.executable)`")
+            .accessibilityLabel("\(toolchain.displayName) project")
     }
 }
 

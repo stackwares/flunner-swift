@@ -269,7 +269,7 @@ struct ConsoleToolbar: View {
     private var flutterCLIMenu: some View {
         if viewModel.projectPath != nil {
             Menu {
-                ForEach(FlutterCLICommand.groups) { group in
+                ForEach(viewModel.cliCommandGroups) { group in
                     Section(group.name) {
                         ForEach(group.commands) { command in
                             Button {
@@ -292,8 +292,8 @@ struct ConsoleToolbar: View {
             }
             .menuStyle(.borderlessButton)
             .fixedSize()
-            .workbenchTooltip("Run Flutter CLI command", placement: .below)
-            .accessibilityLabel("Flutter CLI Commands")
+            .workbenchTooltip("Run \(viewModel.projectToolchain.displayName) CLI command", placement: .below)
+            .accessibilityLabel("\(viewModel.projectToolchain.displayName) CLI Commands")
         }
     }
 
@@ -326,7 +326,7 @@ struct ConsoleToolbar: View {
                 Divider()
 
                 Menu {
-                    ForEach(FlutterCLICommand.groups) { group in
+                    ForEach(viewModel.cliCommandGroups) { group in
                         Section(group.name) {
                             ForEach(group.commands) { command in
                                 Button {
@@ -338,7 +338,7 @@ struct ConsoleToolbar: View {
                         }
                     }
                 } label: {
-                    Label("Flutter CLI Commands", systemImage: "terminal.fill")
+                    Label("\(viewModel.projectToolchain.displayName) CLI Commands", systemImage: "terminal.fill")
                 }
             }
         } label: {
@@ -645,7 +645,7 @@ private struct LogEmptyState: View {
     var body: some View {
         if viewModel.projectPath == nil {
             ContentUnavailableView {
-                Label("Choose a Flutter Project", systemImage: "folder.badge.plus")
+                Label("Choose a Flutter or DartNative Project", systemImage: "folder.badge.plus")
             } description: {
                 Text("Open a project to choose a device and start a run.")
             } actions: {

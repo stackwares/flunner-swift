@@ -101,8 +101,12 @@ final class TerminalWorkspaceManager: ObservableObject {
         }
     }
 
-    func sendToActiveSession(_ command: FlutterCLICommand, in projectPath: String) {
-        let text = (["flutter"] + command.arguments).joined(separator: " ")
+    func sendToActiveSession(
+        _ command: FlutterCLICommand,
+        in projectPath: String,
+        executable: String = ProjectToolchain.flutter.executable
+    ) {
+        let text = ([executable] + command.arguments).joined(separator: " ")
         sendText(text, in: projectPath)
     }
 

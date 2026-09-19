@@ -5,6 +5,8 @@ final class FlutterSDKInfoService: ObservableObject {
     @Published private(set) var sdkInfo: FlutterSDKInfo?
     @Published private(set) var isLoading = false
     @Published private(set) var errorMessage: String?
+    /// SDK being described: Flutter, or DartNative when a DartNative project is open.
+    @Published private(set) var toolchain: ProjectToolchain = .flutter
 
     private let processRunner: ProcessRunner
 
@@ -12,14 +14,29 @@ final class FlutterSDKInfoService: ObservableObject {
         self.processRunner = processRunner
     }
 
+    /// Switches the described SDK. Clears stale info so the UI never shows the
+    /// Flutter SDK for a DartNative project (or the reverse) while refreshing.
+    func prepare(for toolchain: ProjectToolchain) {
+        guard self.toolchain != toolchain else { return }
+        self.toolchain = toolchain
+        sdkInfo = nil
+        errorMessage = nil
+    }
+
     func refresh() async {
+        let executable = toolchain.executable
         isLoading = true
         errorMessage = nil
 
         do {
-            let flutterPath = try await resolveFlutterPath()
-            let versionInfo = try await resolveVersionInfo()
-            let doctorCategories = try await resolveDoctor()
+            let flutterPath = try await resolveSDKPath(executable: executable)
+            let versionInfo = try await resolveVersionInfo(executable: executable)
+            let doctorCategories = try await resolveDoctor(executable: executable)
+            // A refresh for another toolchain may have started meanwhile; drop this result.
+            guard executable == toolchain.executable else {
+                isLoading = false
+                return
+            }
 
             sdkInfo = FlutterSDKInfo(
                 flutterPath: flutterPath,
@@ -31,22 +48,25 @@ final class FlutterSDKInfoService: ObservableObject {
                 doctorCategories: doctorCategories
             )
         } catch {
-            errorMessage = error.localizedDescription
+            if executable == toolchain.executable {
+                errorMessage = error.localizedDescription
+            }
         }
 
         isLoading = false
     }
 
-    private func resolveFlutterPath() async throws -> String {
-        let output = try await processRunner.run(command: "which flutter")
+    private func resolveSDKPath(executable: String) async throws -> String {
+        let output = try await processRunner.run(command: "which \(executable)")
         return output.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    private func resolveVersionInfo() async throws -> VersionInfo {
-        let output = try await processRunner.run(command: "flutter --version --machine")
-        guard let data = output.data(using: .utf8),
+    private func resolveVersionInfo(executable: String) async throws -> VersionInfo {
+        let command = "\(executable) --version --machine"
+        let output = try await processRunner.run(command: command)
+        guard let data = Self.jsonObjectData(in: output),
               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
-            throw SDKInfoError.parsingFailed("flutter --version --machine")
+            throw SDKInfoError.parsingFailed(command)
         }
 
         return VersionInfo(
@@ -58,9 +78,18 @@ final class FlutterSDKInfoService: ObservableObject {
         )
     }
 
-    private func resolveDoctor() async throws -> [DoctorCategory] {
-        let output = try await processRunner.run(command: "flutter doctor -v")
+    private func resolveDoctor(executable: String) async throws -> [DoctorCategory] {
+        let output = try await processRunner.run(command: "\(executable) doctor -v")
         return parseDoctorOutput(output)
+    }
+
+    /// `dn` can print update notices around the JSON, so parse only the outermost
+    /// `{…}` block instead of the whole output.
+    static func jsonObjectData(in output: String) -> Data? {
+        guard let start = output.firstIndex(of: "{"),
+              let end = output.lastIndex(of: "}"),
+              start < end else { return nil }
+        return String(output[start...end]).data(using: .utf8)
     }
 
     private func parseDoctorOutput(_ output: String) -> [DoctorCategory] {

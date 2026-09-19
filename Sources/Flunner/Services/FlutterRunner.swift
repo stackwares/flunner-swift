@@ -22,10 +22,14 @@ class FlutterRunner: ObservableObject {
     private var stderrBuffer = ""
     private var completionReported = false
     private var stopRequested = false
+    /// CLI that runs the app: `flutter` or DartNative's `dn`. Both speak the same
+    /// `--machine` protocol, so only the executable changes.
+    var toolchain: ProjectToolchain
     
     init(projectPath: String, deviceId: String) {
         self.projectPath = projectPath
         self.deviceId = deviceId
+        self.toolchain = ProjectToolchain.detect(at: projectPath) ?? .flutter
     }
 
     deinit {
@@ -39,7 +43,7 @@ class FlutterRunner: ObservableObject {
         stdoutPipe = Pipe()
         stderrPipe = Pipe()
 
-        var command = "flutter run --machine --suppress-analytics -d \(deviceId)"
+        var command = "\(toolchain.executable) run --machine --suppress-analytics -d \(deviceId)"
 
         if let config = launchConfig {
             let extra = config.extraArgs
@@ -113,7 +117,7 @@ class FlutterRunner: ObservableObject {
         }
         
         do {
-            onLogOutput?("flutter run -d \(deviceId)", .command)
+            onLogOutput?("\(toolchain.executable) run -d \(deviceId)", .command)
             try process.run()
             self.process = process
             self.appState = .starting
@@ -165,10 +169,10 @@ class FlutterRunner: ObservableObject {
 
         if force {
             process.terminate()
-            onLogOutput?("Force killed flutter process", .error)
+            onLogOutput?("Force killed \(toolchain.executable) process", .error)
         } else {
             process.interrupt()
-            onLogOutput?("Interrupted flutter process", .info)
+            onLogOutput?("Interrupted \(toolchain.executable) process", .info)
         }
     }
     
@@ -260,7 +264,7 @@ class FlutterRunner: ObservableObject {
         if lower.hasPrefix("error") || lower.contains("error:") || lower.contains("exception") || lower.contains("failed") || lower.contains("failure") {
             return .error
         }
-        if lower.hasPrefix("flutter") || lower.hasPrefix("building") || lower.hasPrefix("compiling") || lower.hasPrefix("running") {
+        if lower.hasPrefix("flutter") || lower.hasPrefix("dn ") || lower.hasPrefix("building") || lower.hasPrefix("compiling") || lower.hasPrefix("running") {
             return .command
         }
         return .info

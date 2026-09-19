@@ -51,6 +51,8 @@ Agents can also connect over **Model Context Protocol (MCP)** to the *running* w
 - 🪵 **High-Throughput Console** — Smooth multi-line selection, real-time search, timestamp toggling, and fast filtering by log level (`Info`, `Error`, `Command`).
 - 💻 **Integrated PTY Terminal** — Built-in interactive terminal tabs powered by [SwiftTerm](https://github.com/migueldeicaza/SwiftTerm) with full interactive shell support (`zsh`, `fvm`, `bash`).
 - 📱 **Device & Emulator Management** — Automatic detection and launching of iOS Simulators, Android Virtual Devices (AVDs), macOS desktop targets, and Chrome web instances via Flutter daemon.
+- 🧬 **DartNative Projects** — [DartNative](https://dartnative.com) apps are detected automatically (a `dartnative` dependency in `pubspec.yaml`, or `dn_plugins.lock`) and marked **DN** in the sidebar. Runs, hot reload, Pub Get, Clean, SDK info and terminal commands go through the `dn` CLI instead of `flutter`; web and desktop build commands are hidden because DartNative targets iOS and Android.
+- 🍎 **Xcode 27 Device Hub** — *Open iOS Simulator* opens Device Hub on Xcode 27 and later (which replaced `Simulator.app`) and falls back to `Simulator.app` on older Xcode versions.
 - 🌿 **Git & Source Control Sheet** — Native source control dialog to stage files, inspect unified diffs, compose commits, switch branches, and push without leaving the workbench.
 - 🛠️ **Project Maintenance & SDK Diagnostics** — One-click `flutter pub get`, `flutter clean`, integrated `flutter doctor` diagnostics viewer, and quick access to Flutter / Dart documentation.
 - 🎨 **Purpose-Built Design** — Native macOS HIG adherence, custom copper/graphite workbench aesthetics, light/dark appearance support, and custom font scaling.

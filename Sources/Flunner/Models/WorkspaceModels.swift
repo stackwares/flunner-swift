@@ -116,7 +116,7 @@ enum WorkspaceValidationError: LocalizedError, Equatable {
         switch self {
         case .missingDirectory: "The project folder no longer exists."
         case .missingPubspec: "This folder does not contain pubspec.yaml."
-        case .notFlutterProject: "The selected folder is not a Flutter project."
+        case .notFlutterProject: "The selected folder is not a Flutter or DartNative project."
         case .unreadableProject: "Flunner could not read this project."
         }
     }
@@ -163,4 +163,39 @@ struct FlutterCLICommand: Identifiable {
             FlutterCLICommand(name: "Flutter Upgrade", systemImage: "arrow.triangle.2.circlepath", arguments: ["upgrade"]),
         ]),
     ]
+
+    /// Commands for DartNative projects, sent through `dn`. DartNative targets
+    /// iOS and Android only, so web and desktop builds are left out.
+    static let dartNativeGroups: [FlutterCLICommandGroup] = [
+        FlutterCLICommandGroup(name: "Dependencies", commands: [
+            FlutterCLICommand(name: "Pub Get", systemImage: "arrow.down.doc", arguments: ["pub", "get"]),
+            FlutterCLICommand(name: "Pub Upgrade", systemImage: "arrow.up.doc", arguments: ["pub", "upgrade"]),
+            FlutterCLICommand(name: "Pub Outdated", systemImage: "clock.arrow.circlepath", arguments: ["pub", "outdated"]),
+        ]),
+        FlutterCLICommandGroup(name: "Tools", commands: [
+            FlutterCLICommand(name: "Devices", systemImage: "laptopcomputer.and.iphone", arguments: ["devices"]),
+            FlutterCLICommand(name: "Emulators", systemImage: "rectangle.on.rectangle", arguments: ["emulators"]),
+            FlutterCLICommand(name: "Logs", systemImage: "text.alignleft", arguments: ["logs"]),
+            FlutterCLICommand(name: "Doctor", systemImage: "stethoscope", arguments: ["doctor"]),
+        ]),
+        FlutterCLICommandGroup(name: "Analysis & Testing", commands: [
+            FlutterCLICommand(name: "Analyze", systemImage: "magnifyingglass.circle", arguments: ["analyze"]),
+            FlutterCLICommand(name: "Test", systemImage: "checklist", arguments: ["test"]),
+        ]),
+        FlutterCLICommandGroup(name: "Build", commands: [
+            FlutterCLICommand(name: "Build APK", systemImage: "android", arguments: ["build", "apk"]),
+            FlutterCLICommand(name: "Build App Bundle", systemImage: "archivebox", arguments: ["build", "appbundle"]),
+            FlutterCLICommand(name: "Build IPA", systemImage: "apple.logo", arguments: ["build", "ipa"]),
+        ]),
+        FlutterCLICommandGroup(name: "SDK", commands: [
+            FlutterCLICommand(name: "DartNative Upgrade", systemImage: "arrow.triangle.2.circlepath", arguments: ["upgrade"]),
+        ]),
+    ]
+
+    static func groups(for toolchain: ProjectToolchain) -> [FlutterCLICommandGroup] {
+        switch toolchain {
+        case .flutter: Self.groups
+        case .dartNative: Self.dartNativeGroups
+        }
+    }
 }

@@ -40,7 +40,7 @@ struct FlutterSDKInfoPopover: View {
         VStack(spacing: WorkbenchSpacing.medium) {
             ProgressView()
                 .scaleEffect(0.8)
-            Text("Gathering Flutter SDK info…")
+            Text("Gathering \(service.toolchain.displayName) SDK info…")
                 .workbenchFont(.body)
                 .foregroundStyle(WorkbenchColor.textSecondary)
         }
@@ -89,7 +89,7 @@ struct FlutterSDKInfoPopover: View {
     private func headerSection(_ info: FlutterSDKInfo) -> some View {
         HStack(alignment: .firstTextBaseline) {
             VStack(alignment: .leading, spacing: WorkbenchSpacing.xs) {
-                Text("Flutter")
+                Text(service.toolchain.displayName)
                     .workbenchFont(.display)
                     .foregroundStyle(WorkbenchColor.textPrimary)
                 Text(info.flutterVersion)
@@ -135,7 +135,7 @@ struct FlutterSDKInfoPopover: View {
             .buttonStyle(.borderless)
             .foregroundStyle(WorkbenchColor.accent)
             .padding(.top, WorkbenchSpacing.xs)
-            .accessibilityLabel("Reveal Flutter SDK in Finder")
+            .accessibilityLabel("Reveal \(service.toolchain.displayName) SDK in Finder")
 
             HStack(spacing: WorkbenchSpacing.medium) {
                 LabeledInfo(label: "Dart", value: info.dartVersion)
@@ -170,7 +170,7 @@ struct FlutterSDKInfoPopover: View {
             HStack(spacing: WorkbenchSpacing.small) {
                 LinkButton(title: "DartPad", url: "https://dartpad.dev", systemImage: "play.rectangle", onOpenLink: onOpenLink)
                 LinkButton(title: "Pub.dev", url: "https://pub.dev", systemImage: "shippingbox", onOpenLink: onOpenLink)
-                LinkButton(title: "Flutter Docs", url: "https://docs.flutter.dev", systemImage: "book", onOpenLink: onOpenLink)
+                LinkButton(title: "\(service.toolchain.displayName) Docs", url: service.toolchain.docsURL, systemImage: "book", onOpenLink: onOpenLink)
                 LinkButton(title: "Dart Docs", url: "https://dart.dev/guides", systemImage: "books.vertical", onOpenLink: onOpenLink)
             }
         }

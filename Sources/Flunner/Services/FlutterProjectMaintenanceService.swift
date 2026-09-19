@@ -48,6 +48,7 @@ final class FlutterProjectMaintenanceService: FlutterProjectMaintaining {
     private var pendingCommands: [[String]] = []
     private var commandIndex = 0
     private var projectPath = ""
+    private var executable = ProjectToolchain.flutter.executable
     private var onOutput: ((String, LogEntryType) -> Void)?
     private var completion: ((FlutterProjectMaintenanceOutcome) -> Void)?
 
@@ -65,6 +66,7 @@ final class FlutterProjectMaintenanceService: FlutterProjectMaintaining {
         guard process == nil, pendingCommands.isEmpty else { return false }
 
         self.projectPath = projectPath
+        executable = (ProjectToolchain.detect(at: projectPath) ?? .flutter).executable
         self.onOutput = onOutput
         self.completion = completion
         pendingCommands = operation.commands
@@ -87,7 +89,7 @@ final class FlutterProjectMaintenanceService: FlutterProjectMaintaining {
 
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/bin/zsh")
-        process.arguments = ["-ic", (["flutter"] + arguments).joined(separator: " ")]
+        process.arguments = ["-ic", ([executable] + arguments).joined(separator: " ")]
         process.currentDirectoryURL = URL(fileURLWithPath: projectPath)
         process.standardOutput = stdoutPipe
         process.standardError = stderrPipe
@@ -109,7 +111,7 @@ final class FlutterProjectMaintenanceService: FlutterProjectMaintaining {
             }
         }
 
-        let command = (["flutter"] + arguments).joined(separator: " ")
+        let command = ([executable] + arguments).joined(separator: " ")
         onOutput?(command, .command)
 
         do {
@@ -159,7 +161,7 @@ final class FlutterProjectMaintenanceService: FlutterProjectMaintaining {
         process = nil
 
         let arguments = pendingCommands[commandIndex]
-        let command = (["flutter"] + arguments).joined(separator: " ")
+        let command = ([executable] + arguments).joined(separator: " ")
         guard exitCode == 0 else {
             finish(.failed(command: command, exitCode: exitCode))
             return

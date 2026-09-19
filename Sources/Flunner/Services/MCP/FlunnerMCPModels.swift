@@ -201,6 +201,10 @@ struct FlunnerMCPStatusPayload: Encodable {
     let launchConfigs: [ConfigPayload]
     let liveRuns: [RunPayload]
     let sdk: SDKPayload?
+    /// "flutter" or "dartNative" for the open project, nil when none is open.
+    let projectToolchain: String?
+    /// CLI that runs the open project: "flutter" or "dn".
+    let cliExecutable: String?
 }
 
 enum FlunnerMCPSchema {
