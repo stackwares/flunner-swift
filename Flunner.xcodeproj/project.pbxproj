@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A68336292D2931589877CE01 /* SimulatorKeyboard in Frameworks */ = {isa = PBXBuildFile; productRef = A68336292D2931589877CE02 /* SimulatorKeyboard */; };
+		935F18C603956317C46AB84C /* DeviceHubTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEACE50256709DCD4160FFDF /* DeviceHubTests.swift */; };
+		B9626B6476D5C63ADEB100B8 /* DevicePreviewPane.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0731A8010E2D0C93AA0E410 /* DevicePreviewPane.swift */; };
+		B6E40D989AF993FC95BCDF12 /* DeviceHubWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F7E8C000833A4B73B8AECE3 /* DeviceHubWebView.swift */; };
+		7F6262F59F7F14463865BABF /* DeviceHubService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE30235B98C2B1B315E1BEAB /* DeviceHubService.swift */; };
 		0EFC1F2408FCB8367AFFFAAC /* TerminalWorkspaceManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2B8A8DB42B764CE9E6A8473 /* TerminalWorkspaceManagerTests.swift */; };
 		2A392863F5F7BE8A96DA09C9 /* KeyboardShortcutStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F26B1ADC6749DD8D9C1B825D /* KeyboardShortcutStoreTests.swift */; };
 		2EDBFA4FBD5E8A463A5060CD /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D54C6B3F20F8D9F456899A8 /* AppState.swift */; };
@@ -80,6 +85,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		EEACE50256709DCD4160FFDF /* DeviceHubTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DeviceHubTests.swift; path = Tests/FlunnerTests/DeviceHubTests.swift; sourceTree = SOURCE_ROOT; };
+		C0731A8010E2D0C93AA0E410 /* DevicePreviewPane.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DevicePreviewPane.swift; path = Sources/Flunner/Views/DevicePreview/DevicePreviewPane.swift; sourceTree = SOURCE_ROOT; };
+		4F7E8C000833A4B73B8AECE3 /* DeviceHubWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DeviceHubWebView.swift; path = Sources/Flunner/Views/DevicePreview/DeviceHubWebView.swift; sourceTree = SOURCE_ROOT; };
+		BE30235B98C2B1B315E1BEAB /* DeviceHubService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DeviceHubService.swift; path = Sources/Flunner/Services/DevicePreview/DeviceHubService.swift; sourceTree = SOURCE_ROOT; };
 		06EF6C4892EF5DF6A9EC0114 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		0DF672686DB5283F0BB47D36 /* FlunnerMCPModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlunnerMCPModels.swift; sourceTree = "<group>"; };
 		10B7CC54E8CB2D0CA7BDE8D8 /* LaunchConfigEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchConfigEditorView.swift; sourceTree = "<group>"; };
@@ -150,6 +159,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				C466FF331A876D4E53EE5E9C /* SwiftTerm in Frameworks */,
+				A68336292D2931589877CE01 /* SimulatorKeyboard in Frameworks */,
 				4E9E4F47BC4EF6512A4E5FF0 /* MCP in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -169,6 +179,7 @@
 		163368076EA29A1793FDB790 /* FlunnerTests */ = {
 			isa = PBXGroup;
 			children = (
+				EEACE50256709DCD4160FFDF /* DeviceHubTests.swift */,
 				BD49A456069BF558A32A73E0 /* AgentMCPConfigWriterTests.swift */,
 				37A91CFDE4442149736D2ADB /* ConsoleLogToolsTests.swift */,
 				8205016E09AD86BD26CB69E6 /* FlunnerMCPTests.swift */,
@@ -223,6 +234,7 @@
 		405813ABBE2E039DE83AF9D0 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				BE30235B98C2B1B315E1BEAB /* DeviceHubService.swift */,
 				40C6FCAC62FF4C65A58410B6 /* FlutterAppIconService.swift */,
 				C231A1CB01459A0CD8218A83 /* FlutterDaemon.swift */,
 				272CBDD494D6CB4A76AC9F84 /* FlutterProjectMaintenanceService.swift */,
@@ -276,6 +288,8 @@
 		E35DC6037FBDE4079A57B2CC /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				C0731A8010E2D0C93AA0E410 /* DevicePreviewPane.swift */,
+				4F7E8C000833A4B73B8AECE3 /* DeviceHubWebView.swift */,
 				1B7CF391C40BCCE3D0A8E402 /* ContentView.swift */,
 				D50F68ED0BA13F249B2938A6 /* LegacySidebarToolbarItemCleanup.swift */,
 				F4695A6367637E968EBFFD2B /* Settings */,
@@ -360,6 +374,7 @@
 			packageProductDependencies = (
 				3D4EEC9B92CEB24A5E32B645 /* SwiftTerm */,
 				95A024D3BE15E105E3BF4933 /* MCP */,
+				A68336292D2931589877CE02 /* SimulatorKeyboard */,
 			);
 			productName = Flunner;
 			productReference = 7BBFDDC4D67135CAB628B526 /* Flunner.app */;
@@ -389,6 +404,7 @@
 			mainGroup = 2B7BD9FF1DF31A98A58BABCE;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				A68336292D2931589877CE03 /* SimulatorKeyboard */,
 				D67ECEA5277B4D1E5A35D69F /* XCRemoteSwiftPackageReference "SwiftTerm" */,
 				E0A03535EAA1216565CB6339 /* XCRemoteSwiftPackageReference "swift-sdk" */,
 			);
@@ -419,6 +435,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				935F18C603956317C46AB84C /* DeviceHubTests.swift in Sources */,
 				E1FE6687328F4C5940A17710 /* AgentMCPConfigWriterTests.swift in Sources */,
 				E384DD9237FCFF206626C1F9 /* ConsoleLogToolsTests.swift in Sources */,
 				F3131DFC5961257F160F28C6 /* FlunnerMCPTests.swift in Sources */,
@@ -439,6 +456,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B9626B6476D5C63ADEB100B8 /* DevicePreviewPane.swift in Sources */,
+				B6E40D989AF993FC95BCDF12 /* DeviceHubWebView.swift in Sources */,
+				7F6262F59F7F14463865BABF /* DeviceHubService.swift in Sources */,
 				5BFFEA47A19A53F645423D75 /* AboutView.swift in Sources */,
 				8F61173BF6E22F64E4B68E0B /* AgentMCPConfigWriter.swift in Sources */,
 				2EDBFA4FBD5E8A463A5060CD /* AppState.swift in Sources */,
@@ -730,6 +750,13 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCLocalSwiftPackageReference section */
+		A68336292D2931589877CE03 /* SimulatorKeyboard */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/SimulatorKeyboard;
+		};
+/* End XCLocalSwiftPackageReference section */
+
 /* Begin XCRemoteSwiftPackageReference section */
 		D67ECEA5277B4D1E5A35D69F /* XCRemoteSwiftPackageReference "SwiftTerm" */ = {
 			isa = XCRemoteSwiftPackageReference;
@@ -750,6 +777,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		A68336292D2931589877CE02 /* SimulatorKeyboard */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A68336292D2931589877CE03 /* SimulatorKeyboard */;
+			productName = SimulatorKeyboard;
+		};
 		3D4EEC9B92CEB24A5E32B645 /* SwiftTerm */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = D67ECEA5277B4D1E5A35D69F /* XCRemoteSwiftPackageReference "SwiftTerm" */;

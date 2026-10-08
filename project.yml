@@ -1,5 +1,7 @@
 name: Flunner
 packages:
+  SimulatorKeyboard:
+    path: Packages/SimulatorKeyboard
   SwiftTerm:
     url: https://github.com/migueldeicaza/SwiftTerm.git
     exactVersion: 1.11.2
@@ -16,6 +18,7 @@ targets:
         excludes:
           - Design/AppIconMaster.png
     dependencies:
+      - package: SimulatorKeyboard
       - package: SwiftTerm
       - package: mcp-swift-sdk
         product: MCP

@@ -44,6 +44,7 @@ struct FlunnerApp: App {
     @StateObject private var sourceControlViewModel: SourceControlViewModel
     @StateObject private var mcpServer: FlunnerMCPServer
     @StateObject private var keyboardShortcuts = KeyboardShortcutStore()
+    @StateObject private var deviceHub = DeviceHubService()
     @AppStorage(PreferenceKeys.themeMode) private var themeMode = ThemeMode.system.rawValue
     @AppStorage(PreferenceKeys.appFontSize) private var appFontSize = AppFontSizing.defaultSize
 
@@ -62,7 +63,7 @@ struct FlunnerApp: App {
 
     var body: some Scene {
         WindowGroup(id: "workspace") {
-            ContentView(viewModel: viewModel, sourceControlViewModel: sourceControlViewModel)
+            ContentView(viewModel: viewModel, sourceControlViewModel: sourceControlViewModel, deviceHub: deviceHub)
                 .frame(minWidth: 820, minHeight: 520)
                 .preferredColorScheme(selectedTheme.colorScheme)
                 .workbenchAppFontSize(appFontSize)
@@ -181,6 +182,11 @@ private struct WorkbenchCommands: Commands {
         }
 
         CommandMenu("Device") {
+            Button("Toggle Device Preview", systemImage: "iphone.gen3") {
+                NotificationCenter.default.post(name: .toggleDevicePreview, object: nil)
+            }
+            .keyboardShortcut("3", modifiers: [.command, .option])
+            Divider()
             Button("Open iOS Simulator", systemImage: "iphone") {
                 viewModel.openiOSSimulator()
             }

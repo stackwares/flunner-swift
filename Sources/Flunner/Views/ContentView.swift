@@ -11,6 +11,9 @@ struct ContentView: View {
     @State private var showSDKInfoPopover = false
     @State private var showOnboarding = false
     @State private var showAboutSheet = false
+    @ObservedObject var deviceHub: DeviceHubService
+    @StateObject private var deviceBrowser = DeviceHubWebSession()
+    @AppStorage(PreferenceKeys.devicePreviewVisible) private var isDevicePreviewVisible = false
     @AppStorage(PreferenceKeys.themeMode) private var themeMode = ThemeMode.system.rawValue
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
 
@@ -20,9 +23,10 @@ struct ContentView: View {
         terminalWorkspaces.isVisible(for: viewModel.projectPath)
     }
 
-    init(viewModel: WorkspaceViewModel, sourceControlViewModel: SourceControlViewModel) {
+    init(viewModel: WorkspaceViewModel, sourceControlViewModel: SourceControlViewModel, deviceHub: DeviceHubService) {
         self.viewModel = viewModel
         self.sourceControlViewModel = sourceControlViewModel
+        self.deviceHub = deviceHub
         terminalWorkspaces = viewModel.terminalWorkspaces
     }
 
@@ -34,7 +38,10 @@ struct ContentView: View {
             LiveWorkspaceView(
                 viewModel: viewModel,
                 sourceControlViewModel: sourceControlViewModel,
-                isSourceControlSheetPresented: $isSourceControlSheetPresented
+                isSourceControlSheetPresented: $isSourceControlSheetPresented,
+                deviceHub: deviceHub,
+                deviceBrowser: deviceBrowser,
+                isDevicePreviewVisible: $isDevicePreviewVisible
             )
             .navigationTitle(viewModel.projectName)
             .navigationSubtitle(viewModel.projectPath?.abbreviatingWithTildeInPath ?? "")
@@ -45,6 +52,14 @@ struct ContentView: View {
         .tint(WorkbenchColor.accent)
         .toolbar {
             ToolbarItemGroup(placement: .primaryAction) {
+                Button { isDevicePreviewVisible.toggle() } label: {
+                    Image(systemName: isDevicePreviewVisible ? "iphone.gen3.radiowaves.left.and.right" : "iphone.gen3")
+                        .symbolRenderingMode(.monochrome)
+                }
+                .workbenchTooltip(isDevicePreviewVisible ? "Hide Device Preview (⌥⌘3)" : "Show Device Preview (⌥⌘3)", placement: .below)
+                .accessibilityLabel(isDevicePreviewVisible ? "Hide Device Preview" : "Show Device Preview")
+                .accessibilityValue(isDevicePreviewVisible ? "Visible" : "Hidden")
+
                 Button(action: viewModel.toggleTerminal) {
                     Image(systemName: isTerminalVisible ? "terminal.fill" : "terminal")
                         .font(.system(size: 14, weight: .medium))
@@ -124,6 +139,12 @@ struct ContentView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .showSourceControlSheet)) { _ in
             isSourceControlSheetPresented = true
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .toggleDevicePreview)) { _ in
+            isDevicePreviewVisible.toggle()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification)) { _ in
+            deviceHub.stop()
         }
         .onReceive(NotificationCenter.default.publisher(for: .showFlutterSDKInfo)) { _ in
             showSDKInfoPopover = true

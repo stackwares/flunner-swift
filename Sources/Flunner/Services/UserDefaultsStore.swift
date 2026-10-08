@@ -8,6 +8,7 @@ enum PreferenceKeys {
     static let followOutput = "followOutput"
     static let mcpEnabled = "mcpEnabled"
     static let settingsSelectedTab = "settingsSelectedTab"
+    static let devicePreviewVisible = "devicePreviewVisible"
 }
 
 enum SettingsTab: String {

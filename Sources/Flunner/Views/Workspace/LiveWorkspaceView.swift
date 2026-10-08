@@ -5,12 +5,19 @@ struct LiveWorkspaceView: View {
     @ObservedObject var sourceControlViewModel: SourceControlViewModel
     @ObservedObject private var terminalWorkspaces: TerminalWorkspaceManager
     @Binding var isSourceControlSheetPresented: Bool
+    @ObservedObject var deviceHub: DeviceHubService
+    @ObservedObject var deviceBrowser: DeviceHubWebSession
+    @Binding var isDevicePreviewVisible: Bool
     @State private var showingConfigEditor = false
+    @State private var devicePaneID = UUID()
 
-    init(viewModel: WorkspaceViewModel, sourceControlViewModel: SourceControlViewModel, isSourceControlSheetPresented: Binding<Bool>) {
+    init(viewModel: WorkspaceViewModel, sourceControlViewModel: SourceControlViewModel, isSourceControlSheetPresented: Binding<Bool>, deviceHub: DeviceHubService, deviceBrowser: DeviceHubWebSession, isDevicePreviewVisible: Binding<Bool>) {
         self.viewModel = viewModel
         self.sourceControlViewModel = sourceControlViewModel
         self._isSourceControlSheetPresented = isSourceControlSheetPresented
+        self.deviceHub = deviceHub
+        self.deviceBrowser = deviceBrowser
+        self._isDevicePreviewVisible = isDevicePreviewVisible
         terminalWorkspaces = viewModel.terminalWorkspaces
     }
 
@@ -20,35 +27,26 @@ struct LiveWorkspaceView: View {
                 SetupBar(viewModel: viewModel, showingConfigEditor: $showingConfigEditor)
                 Divider().overlay(WorkbenchColor.divider)
 
-                VStack(spacing: 0) {
-                    ConsoleToolbar(viewModel: viewModel)
-                    Divider().overlay(WorkbenchColor.divider)
-                    ConsolePanel(viewModel: viewModel)
-                }
-                .frame(minHeight: 180)
-
-                if let projectPath = viewModel.projectPath,
-                   viewModel.isTerminalAvailable,
-                   terminalWorkspaces.isVisible(for: projectPath) {
-                    let paneHeight = clampedPaneHeight(
-                        terminalWorkspaces.snapshot(for: projectPath).paneHeight,
-                        availableHeight: geometry.size.height
-                    )
-
-                    TerminalResizeDivider(
-                        currentHeight: paneHeight,
-                        onChange: { proposedHeight in
-                            terminalWorkspaces.updatePaneHeight(
-                                clampedPaneHeight(proposedHeight, availableHeight: geometry.size.height),
-                                for: projectPath,
-                                persist: false
-                            )
-                        },
-                        onEnd: { terminalWorkspaces.persistPaneHeight(for: projectPath) }
-                    )
-
-                    TerminalPaneView(manager: terminalWorkspaces, projectPath: projectPath)
-                        .frame(height: CGFloat(paneHeight))
+                if isDevicePreviewVisible {
+                    if geometry.size.width >= 860 {
+                        HSplitView {
+                            consoleAndTerminal(availableHeight: geometry.size.height)
+                                .frame(minWidth: 520)
+                            DevicePreviewPane(hub: deviceHub, browser: deviceBrowser, isVisible: $isDevicePreviewVisible)
+                                .frame(minWidth: 320, idealWidth: 400, maxWidth: 700)
+                        }
+                    } else {
+                        VSplitView {
+                            DevicePreviewPane(hub: deviceHub, browser: deviceBrowser, isVisible: $isDevicePreviewVisible)
+                                .frame(minHeight: 200, idealHeight: geometry.size.height * 0.55)
+                            GeometryReader { consoleGeometry in
+                                consoleAndTerminal(availableHeight: consoleGeometry.size.height + 88)
+                            }
+                            .frame(minHeight: terminalWorkspaces.isVisible(for: viewModel.projectPath) ? 360 : 180)
+                        }
+                    }
+                } else {
+                    consoleAndTerminal(availableHeight: geometry.size.height)
                 }
 
                 WorkbenchStatusBar(
@@ -60,6 +58,12 @@ struct LiveWorkspaceView: View {
             .background(WorkbenchColor.background)
         }
         .accessibilityIdentifier("consoleWorkspace")
+        .onAppear { if isDevicePreviewVisible { deviceHub.openPane(devicePaneID) } }
+        .onChange(of: isDevicePreviewVisible) { _, visible in
+            if visible { deviceHub.openPane(devicePaneID) }
+            else { deviceBrowser.reset(); deviceHub.closePane(devicePaneID) }
+        }
+        .onDisappear { deviceBrowser.reset(); deviceHub.closePane(devicePaneID) }
         .sheet(isPresented: $showingConfigEditor) {
             if let projectPath = viewModel.projectPath {
                 LaunchConfigEditorSheet(
@@ -69,6 +73,32 @@ struct LiveWorkspaceView: View {
                 )
             }
         }
+    }
+
+    private func consoleAndTerminal(availableHeight: CGFloat) -> some View {
+        VStack(spacing: 0) {
+            ConsoleToolbar(viewModel: viewModel)
+                .frame(minHeight: isDevicePreviewVisible ? 48 : nil)
+                .background(WorkbenchColor.surface)
+            Divider().overlay(WorkbenchColor.divider)
+            ConsolePanel(viewModel: viewModel)
+                .frame(minHeight: 136)
+            if let projectPath = viewModel.projectPath,
+               viewModel.isTerminalAvailable,
+               terminalWorkspaces.isVisible(for: projectPath) {
+                let paneHeight = clampedPaneHeight(terminalWorkspaces.snapshot(for: projectPath).paneHeight, availableHeight: availableHeight)
+                TerminalResizeDivider(
+                    currentHeight: paneHeight,
+                    onChange: { proposedHeight in
+                        terminalWorkspaces.updatePaneHeight(clampedPaneHeight(proposedHeight, availableHeight: availableHeight), for: projectPath, persist: false)
+                    },
+                    onEnd: { terminalWorkspaces.persistPaneHeight(for: projectPath) }
+                )
+                TerminalPaneView(manager: terminalWorkspaces, projectPath: projectPath)
+                    .frame(height: CGFloat(paneHeight))
+            }
+        }
+        .frame(minHeight: 180)
     }
 
     private func clampedPaneHeight(_ height: Double, availableHeight: CGFloat) -> Double {

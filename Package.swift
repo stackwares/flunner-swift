@@ -13,6 +13,7 @@ let package = Package(
         ),
     ],
     dependencies: [
+        .package(path: "Packages/SimulatorKeyboard"),
         .package(
             url: "https://github.com/migueldeicaza/SwiftTerm.git",
             exact: "1.11.2"
@@ -26,6 +27,7 @@ let package = Package(
         .executableTarget(
             name: "Flunner",
             dependencies: [
+                .product(name: "SimulatorKeyboard", package: "SimulatorKeyboard"),
                 .product(name: "SwiftTerm", package: "SwiftTerm"),
                 .product(name: "MCP", package: "swift-sdk"),
             ],
